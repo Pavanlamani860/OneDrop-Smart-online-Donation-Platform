@@ -14,8 +14,6 @@ const {
 router.get("/login", renderLoginForm);
 router.get("/signup", renderSignupForm);
 
-// ----
-
 router.post("/signup", upload.single("ngoCertificate"), registerUser);
 
 router.post("/login", loginUser);

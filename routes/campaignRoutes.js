@@ -15,14 +15,15 @@ const {
 router.get("/create", isLoggedIn, isNgo, renderCreateCampaign);
 router.post("/create", isLoggedIn, isNgo, createCampaign);
 
-//
+//show all campiagn
 router.get("/:id", isLoggedIn, getCampaignById);
 router.get("/", isLoggedIn, getAllCampaigns);
 
-//
+//edit campaign
 router.get("/:id/edit", isLoggedIn, isNgo, renderUpdateCampaign);
 router.put("/:id", isLoggedIn, isNgo, updateCampaign);
 
+//delete Campaign
 router.delete("/:id", isLoggedIn, isNgo, deleteCampaign);
 
 module.exports = router;

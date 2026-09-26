@@ -114,8 +114,6 @@ const renderCreateCampaign = (req, res) => {
   });
 };
 
-//
-
 module.exports = {
   createCampaign,
   getAllCampaigns,

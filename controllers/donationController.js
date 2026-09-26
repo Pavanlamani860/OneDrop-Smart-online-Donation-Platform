@@ -3,28 +3,104 @@ const Campaign = require("../models/Campaign");
 const User = require("../models/User");
 const sendThankYouEmail = require("../utils/sendMail");
 
-// RENDER DONATION CHOICE
+//Render Donation Choice
 const renderDonateChoice = async (req, res) => {
-  const campaign = await Campaign.findById(req.params.campaignId);
-  res.render("donations/donate_choice", { campaign });
+  try {
+    const campaign = await Campaign.findById(req.params.campaignId);
+    if (!campaign) {
+      return res.status(404).send("Campaign not found");
+    }
+    // Block completed campaigns
+    if (campaign.status === "completed") {
+      req.flash(
+        "error",
+        "This campaign has been completed. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+    // Check deadline
+    if (new Date(campaign.deadline) < new Date()) {
+      campaign.status = "expired";
+      await campaign.save();
+      req.flash(
+        "error",
+        "This campaign has expired. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+    res.render("donations/donate_choice", { campaign });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
 };
 
-// RENDER MONEY PAGE
-
+// Render Money Page
 const renderDonateMoney = async (req, res) => {
-  const campaign = await Campaign.findById(req.params.campaignId);
-  res.render("donations/donate_money", { campaign });
+  try {
+    const campaign = await Campaign.findById(req.params.campaignId);
+    if (!campaign) {
+      return res.status(404).send("Campaign not found");
+    }
+
+    if (campaign.status === "completed") {
+      req.flash(
+        "error",
+        "This campaign has been completed. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+
+    if (new Date(campaign.deadline) < new Date()) {
+      campaign.status = "expired";
+      await campaign.save();
+      req.flash(
+        "error",
+        "This campaign has expired. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+    res.render("donations/donate_money", { campaign });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
 };
 
-// RENDER ITEMS PAGE
-
+// Render item Page
 const renderDonateItems = async (req, res) => {
-  const campaign = await Campaign.findById(req.params.campaignId);
-  res.render("donations/donate_items", { campaign });
+  try {
+    const campaign = await Campaign.findById(req.params.campaignId);
+    if (!campaign) {
+      return res.status(404).send("Campaign not found");
+    }
+
+    if (campaign.status === "completed") {
+      req.flash(
+        "error",
+        "This campaign has been completed. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+
+    if (new Date(campaign.deadline) < new Date()) {
+      campaign.status = "expired";
+      await campaign.save();
+      req.flash(
+        "error",
+        "This campaign has been completed. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+    res.render("donations/donate_items", { campaign });
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Server Error");
+  }
 };
 
 // =========================
-// POST MONEY DONATION
+// Post Money Donation
 // =========================
 const donateMoneyToCampaign = async (req, res) => {
   try {
@@ -33,13 +109,11 @@ const donateMoneyToCampaign = async (req, res) => {
     }
 
     const { amount } = req.body;
-
     const donationAmount = Number(amount);
 
     if (isNaN(donationAmount) || donationAmount <= 0) {
       return res.status(400).send("Invalid donation amount");
     }
-
     const campaign = await Campaign.findById(req.params.campaignId).populate(
       "creator",
       "name email",
@@ -49,8 +123,33 @@ const donateMoneyToCampaign = async (req, res) => {
       return res.status(404).send("Campaign not found");
     }
 
+    // Check campaign status
+    if (campaign.status === "completed") {
+      req.flash(
+        "error",
+        "This campaign has been completed. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+
+    // Check deadline
+    if (new Date(campaign.deadline) < new Date()) {
+      campaign.status = "expired";
+      await campaign.save();
+      req.flash(
+        "error",
+        "This campaign has expired. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+
     // Update raised amount
     campaign.raisedAmount += donationAmount;
+    // Mark completed if target reached
+    if (campaign.raisedAmount >= campaign.targetAmount) {
+      campaign.status = "completed";
+    }
+
     await campaign.save();
 
     // Save donation
@@ -63,7 +162,6 @@ const donateMoneyToCampaign = async (req, res) => {
 
     // Send Thank You Email
     const donor = await User.findById(req.session.user._id);
-
     if (donor && donor.email) {
       try {
         await sendThankYouEmail(
@@ -94,11 +192,30 @@ const donateItemsToCampaign = async (req, res) => {
     }
 
     const { itemType, quantity, pickupAddress, phone } = req.body;
-
     const campaign = await Campaign.findById(req.params.campaignId);
 
     if (!campaign) {
       return res.status(404).send("Campaign not found");
+    }
+
+    // Check campaign status
+    if (campaign.status === "completed") {
+      req.flash(
+        "error",
+        "This campaign has been completed. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
+    }
+
+    // Check deadline
+    if (new Date(campaign.deadline) < new Date()) {
+      campaign.status = "expired";
+      await campaign.save();
+      req.flash(
+        "error",
+        "This campaign has expired. Donations are no longer accepted.",
+      );
+      return res.redirect(`/api/campaigns/${campaign._id}`);
     }
 
     // Save donation

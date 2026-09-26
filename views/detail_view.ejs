@@ -26,6 +26,17 @@ body{
   width:100%;
 }
 
+.flash-message{
+  position:fixed;
+  top:20px;
+  left:50%;
+  transform:translateX(-50%);
+  z-index:9999;
+  min-width:350px;
+  max-width:500px;
+  box-shadow:0 8px 20px rgba(0,0,0,0.2);
+}
+
 .left-panel{
   background: linear-gradient(to bottom, #185a9d, #43cea2);
   color:white;
@@ -57,9 +68,21 @@ body{
 </head>
 
 <body>
+  <% if (error && error.length > 0) { %>
+    <div class="alert alert-danger alert-dismissible fade show flash-message"
+         role="alert">
+      <i class="fa fa-exclamation-circle"></i>
+      <%= error[0] %>
+  
+      <button type="button"
+              class="btn-close"
+              data-bs-dismiss="alert"
+              aria-label="Close">
+      </button>
+    </div>
+  <% } %>
 
 <div class="wrapper row g-0">
-
   <!-- LEFT PANEL -->
   <div class="col-md-5 left-panel d-flex flex-column justify-content-center">
     <h2><%= campaign.title %></h2>
@@ -72,7 +95,6 @@ body{
 
   <!-- RIGHT PANEL -->
   <div class="col-md-7 form-panel">
-
     <img 
       src="<%= campaign.imageUrl || 'https://picsum.photos/700/400' %>" 
       class="img-fluid mb-3 campaign-img">
@@ -94,35 +116,43 @@ body{
         ⬅ Back
       </a>
 
-      <a href="/api/donations/<%= campaign._id %>" class="btn btn-outline-success">
-        ❤️ Donate Now
-      </a>
+      <% if (campaign.status === "active") { %>
+        <a href="/api/donations/<%= campaign._id %>" class="btn btn-outline-success">
+          Donate Now
+        </a>
+      
+      <% } else if (campaign.status === "expired") { %>
+        <button class="btn btn-secondary" disabled>
+          Campaign Expired
+        </button>
+      
+      <% } else if (campaign.status === "completed") { %>
+        <button class="btn btn-success" disabled>
+          ✅ Campaign Completed
+        </button>
+     <% } %>
 
       <!-- ONLY NGO OWNER & ACTIVE -->
-      <% if (
-        user &&
-        user.role === "ngo" &&
-        campaign.creator._id.toString() === user._id.toString() &&
-        campaign.status === "active"
-      ) { %>
-
+    <% if (
+      user &&
+      user.role === "ngo" &&
+      campaign.creator._id.toString() === user._id.toString()
+    ) { %>
+      <% if (campaign.status === "active") { %>
         <a href="/api/campaigns/<%= campaign._id %>/edit" 
            class="btn btn-warning">
           ✏ Update
         </a>
-
-        <form action="/api/campaigns/<%= campaign._id %>?_method=DELETE" 
-              method="POST" style="display:inline;">
-          <button class="btn btn-danger">
-            🗑 Delete
-          </button>
-        </form>
-
       <% } %>
+      <form action="/api/campaigns/<%= campaign._id %>?_method=DELETE"  method="POST" style="display:inline;">
+        <button class="btn btn-danger">
+          🗑 Delete
+        </button>
+      </form>
+    <% } %>
     </div>
-
   </div>
 </div>
-
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>

@@ -66,19 +66,13 @@ body{
     <% if(user.role === "ngo"){ %>
 
       <h2>🏢 <%= user.name %></h2>
-
       <p><strong>Contact Person:</strong> <%= user.contactPerson %></p>
-
       <p><strong>Email:</strong> <%= user.email %></p>
-
       <p><strong>Role:</strong> NGO</p>
 
     <% } else { %>
-
       <h2>👤 <%= user.name %></h2>
-
       <p><strong>Email:</strong> <%= user.email %></p>
-
       <p><strong>Role:</strong> USER</p>
 
     <% } %>

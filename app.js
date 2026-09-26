@@ -13,7 +13,7 @@ const flash = require("connect-flash");
 dotenv.config();
 connectDB();
 
-const app = express(); // ✅ DEFINE APP FIRST
+const app = express();
 app.use(methodOverride("_method"));
 
 // ===== MIDDLEWARE =====
@@ -34,18 +34,16 @@ const sessionOption = {
 };
 
 app.use(session(sessionOption));
+app.use(flash()); //Connecting Flash
 
-// ===== CONNECT FLASH =====
-app.use(flash());
-
-// ===== MAKE FLASH MESSAGES AVAILABLE TO ALL EJS VIEWS =====
+//Make flash Message availbel to all EJS pages
 app.use((req, res, next) => {
   res.locals.success = req.flash("success");
   res.locals.error = req.flash("error");
   next();
 });
 
-// ===== SET EJS ENGINE =====
+//Set EJS Engine
 app.set("view engine", "ejs");
 app.set("views", path.join(__dirname, "views"));
 
@@ -80,18 +78,7 @@ app.get("/test-mail", async (req, res) => {
   res.send("Mail sent");
 });
 
-// ===== SERVER =====
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
   console.log(`Server running on http://localhost:${PORT}`);
 });
-
-// this method for inserting dummy data into ngo database
-
-// app.get("/test-ngo", async (req,res)=>{
-//   await ValidNgo.create({
-//     ngoName: "Test NGO",
-//     registrationNumber: "12345-TEST"
-//   });
-//   res.send("NGO inserted");
-// });
